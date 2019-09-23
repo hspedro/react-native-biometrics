@@ -35,7 +35,7 @@ RCT_EXPORT_METHOD(createKeys: (NSString *)promptMessage resolver:(RCTPromiseReso
         if (success) {
           [self createAndStoreKeyPair:resolve rejecter:reject];
         } else {
-          NSString *message = [NSString stringWithFormat:@"Fingerprint error: %@", fingerprintError];
+          NSString *message = [NSString stringWithFormat:@"Fingerprint error: %@", [self laErrorToString:fingerprintError]];
           reject(@"fingerprint_error", message, nil);
         }
       }];
@@ -146,7 +146,7 @@ RCT_EXPORT_METHOD(simplePrompt: (NSString *)promptMessage resolver:(RCTPromiseRe
       if (success) {
         resolve(@(YES));
       } else {
-        NSString *message = [NSString stringWithFormat:@"Fingerprint error: %@", fingerprintError];
+        NSString *message = [NSString stringWithFormat:@"Fingerprint error: %@", [self laErrorToString:fingerprintError]];
         reject(@"fingerprint_error", message, nil);
       }
     }];
@@ -190,6 +190,46 @@ RCT_EXPORT_METHOD(simplePrompt: (NSString *)promptMessage resolver:(RCTPromiseRe
   }
 
   return @"TouchID";
+}
+
+- (NSString *)laErrorToString:(NSError *)error {
+  __block NSString* errorReason;
+  if (error) {
+    switch (error.code) {
+      case LAErrorAuthenticationFailed:
+        errorReason = @"LAErrorAuthenticationFailed";
+        break;
+      case LAErrorUserCancel:
+        errorReason = @"LAErrorUserCancel";
+        break;
+      case LAErrorUserFallback:
+        errorReason = @"LAErrorUserFallback";
+        break;
+      case LAErrorSystemCancel:
+        errorReason = @"LAErrorSystemCancel";
+        break;
+      case LAErrorPasscodeNotSet:
+        errorReason = @"LAErrorPasscodeNotSet";
+        break;
+      case LAErrorTouchIDNotAvailable:
+        errorReason = @"LAErrorTouchIDNotAvailable";
+        break;
+      case LAErrorTouchIDNotEnrolled:
+        errorReason = @"LAErrorTouchIDNotEnrolled";
+        break;
+      case LAErrorTouchIDLockout:
+        errorReason = @"LAErrorTouchIDLockout";
+        break;
+      default:
+        errorReason = @"RCTTouchIDUnknownError";
+        break;
+    }
+  } else {
+    errorReason = @"Invalid error returned";
+  }
+  NSString *message = [NSString stringWithFormat:@"%@", errorReason];
+
+  return message;
 }
 
 - (NSString *)keychainErrorToString:(OSStatus)error {
